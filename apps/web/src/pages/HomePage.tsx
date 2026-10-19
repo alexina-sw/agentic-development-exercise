@@ -1,6 +1,7 @@
 import {
   Alert,
   Badge,
+  Button,
   Card,
   Code,
   Container,
@@ -12,6 +13,7 @@ import {
   Title,
 } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router';
 
 import { orpc, type ApiOutputs } from '../api/client';
 
@@ -120,6 +122,12 @@ export function HomePage() {
         ) : null}
 
         {statsQuery.isSuccess ? <CatalogueStats stats={statsQuery.data} /> : null}
+
+        {statsQuery.isSuccess && statsQuery.data.isIngested ? (
+          <Button component={Link} to="/movies" size="md" w="fit-content">
+            Browse films
+          </Button>
+        ) : null}
 
         <Card withBorder radius="md" padding="lg">
           <Stack gap="xs">

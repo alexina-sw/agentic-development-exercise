@@ -1,6 +1,14 @@
 import { oc } from '@orpc/contract';
 import { z } from 'zod';
-import { sessionSchema, signInSchema, signUpSchema, userSchema } from './zod';
+import {
+  movieListInputSchema,
+  movieListSchema,
+  movieSchema,
+  sessionSchema,
+  signInSchema,
+  signUpSchema,
+  userSchema,
+} from './zod';
 
 /**
  * The HTTP surface, built from the Zod schemas which were themselves built
@@ -10,8 +18,8 @@ import { sessionSchema, signInSchema, signUpSchema, userSchema } from './zod';
  * Paths here are relative — the Express app mounts the whole contract under
  * `/api`, so `/stats` is served at `/api/stats`.
  *
- * Exercise 1 adds the movie routes. `movieSchema` in `zod.ts` is already
- * waiting for them.
+ * None of the movie outputs can carry `plot_embedding`: they are all built
+ * from `movieSchema`, which omits it.
  */
 export const contract = {
   health: oc
@@ -27,6 +35,24 @@ export const contract = {
       isIngested: z.boolean(),
     }),
   ),
+
+  movies: {
+    list: oc
+      .route({ method: 'GET', path: '/movies' })
+      .input(movieListInputSchema)
+      .output(movieListSchema),
+
+    get: oc
+      .route({ method: 'GET', path: '/movies/{id}' })
+      .input(z.object({ id: z.coerce.number<number>().int().positive() }))
+      .output(movieSchema)
+      /* An unknown id is an expected outcome of a shared link, so it is a
+         declared 404 the page can render as "no such film" — not a 500. */
+      .errors({ NOT_FOUND: {} }),
+
+    /* Every genre that appears on at least one film, for the filter control. */
+    genres: oc.route({ method: 'GET', path: '/genres' }).output(z.array(z.string())),
+  },
 
   /**
    * Accounts. These are already built, so that Exercise 2 is about favourites
