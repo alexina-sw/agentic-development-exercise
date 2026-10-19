@@ -9,7 +9,7 @@ import {
   isEmailTaken,
 } from './accounts';
 import type { Db } from './db';
-import { countMovies, countMoviesWithEmbedding } from './movies';
+import { countMovies, countMoviesWithEmbedding, findMovie, listGenres, listMovies } from './movies';
 
 /**
  * What every handler gets besides its input: the bearer token the caller
@@ -68,6 +68,34 @@ export function createRouter(db: Db) {
         isIngested: movieCount > 0,
       };
     }),
+
+    movies: {
+      list: os.movies.list.handler(({ input }) => {
+        const { items, total } = listMovies(db, input);
+
+        return {
+          items,
+          page: input.page,
+          pageSize: input.pageSize,
+          total,
+          /* At least one page even when nothing matches, so a pager never
+             has to draw "page 1 of 0". */
+          totalPages: Math.max(1, Math.ceil(total / input.pageSize)),
+        };
+      }),
+
+      get: os.movies.get.handler(({ input, errors }) => {
+        const movie = findMovie(db, input.id);
+
+        if (movie === undefined) {
+          throw errors.NOT_FOUND({ message: `There is no film with id ${String(input.id)}.` });
+        }
+
+        return movie;
+      }),
+
+      genres: os.movies.genres.handler(() => listGenres(db)),
+    },
 
     auth: {
       signUp: os.auth.signUp.handler(({ input, errors }) => {

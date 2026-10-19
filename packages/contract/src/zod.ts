@@ -26,6 +26,53 @@ export const movieSchema = createSelectSchema(movies, arrayColumns).omit({
 
 export type Movie = z.infer<typeof movieSchema>;
 
+/** What a card in the list needs — the detail page fetches the rest. */
+export const movieSummarySchema = movieSchema.pick({
+  id: true,
+  title: true,
+  poster: true,
+  genres: true,
+  imdbRating: true,
+  runtime: true,
+  rated: true,
+  plot: true,
+});
+
+export type MovieSummary = z.infer<typeof movieSummarySchema>;
+
+export const movieSortSchema = z.enum(['title', 'rating']);
+
+export type MovieSort = z.infer<typeof movieSortSchema>;
+
+export const maxPageSize = 48;
+
+/**
+ * The list's query string. GET input arrives as strings, so numbers are
+ * coerced; the `<number>` keeps the client's input typed as a number rather
+ * than `unknown`. An out-of-range page size is a 400, not a silent clamp —
+ * a caller asking for 10,000 rows has a bug worth hearing about.
+ */
+export const movieListInputSchema = z.object({
+  page: z.coerce.number<number>().int().min(1).default(1),
+  pageSize: z.coerce.number<number>().int().min(1).max(maxPageSize).default(24),
+  q: z.string().trim().max(100).optional(),
+  genre: z.string().trim().max(50).optional(),
+  sort: movieSortSchema.default('title'),
+});
+
+export type MovieListInput = z.infer<typeof movieListInputSchema>;
+
+/** One page, plus what a pager needs to draw itself without a second request. */
+export const movieListSchema = z.object({
+  items: z.array(movieSummarySchema),
+  page: z.number().int(),
+  pageSize: z.number().int(),
+  total: z.number().int(),
+  totalPages: z.number().int(),
+});
+
+export type MovieList = z.infer<typeof movieListSchema>;
+
 /** What a row looks like on the way in. Drizzle types the insert itself. */
 export type MovieDraft = typeof movies.$inferInsert;
 

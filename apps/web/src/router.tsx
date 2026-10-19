@@ -2,6 +2,8 @@ import { createBrowserRouter } from 'react-router';
 
 import { HomePage } from './pages/HomePage';
 import { Layout } from './pages/Layout';
+import { MovieDetailPage } from './pages/MovieDetailPage';
+import { MoviesPage } from './pages/MoviesPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { SignInPage } from './pages/SignInPage';
 import { SignUpPage } from './pages/SignUpPage';
@@ -11,12 +13,14 @@ import { SignUpPage } from './pages/SignUpPage';
 
    Everything is nested under `Layout`, which draws the header and renders an
    `<Outlet />` — so a new page gets the header, and the way to sign out, for
-   free. Exercise 1 adds `/movies` and `/movies/:id` here. */
+   free. */
 export const router = createBrowserRouter([
   {
     Component: Layout,
     children: [
       { path: '/', Component: HomePage },
+      { path: '/movies', Component: MoviesPage },
+      { path: '/movies/:id', Component: MovieDetailPage },
       { path: '/sign-in', Component: SignInPage },
       { path: '/sign-up', Component: SignUpPage },
       { path: '*', Component: NotFoundPage },
